@@ -132,6 +132,89 @@ final class RegistrationStepThird implements RegistrationStep
     }
 }
 
+interface RequestInterface { }
+
+class SorterRequest implements RequestInterface
+{
+    /** @var string|null */
+    private ?string $orderBy = null;
+
+    /** @var bool|null */
+    private ?string $asc = null;
+
+    private array $orderByAllowed = ['price', 'new', 'popularity'];
+    private array $ascAllowed = ['up', 'down'];
+
+    /**
+     * @param string $query
+     */
+    public function __construct(string $query)
+    {
+        if (empty($query)) {
+            return;
+        }
+
+        parse_str($query, $reslt);
+
+        if (
+            !empty($reslt['order']) &&
+            strpos($reslt['order'], '_') !== false
+        ) {
+            $parts = explode('_', $reslt['order'], 2) ?: [];
+
+            unset($reslt);
+
+            if (count($parts) !== 2) {
+                return;
+            }
+
+            list($orderBy, $asc) = $parts;
+
+            $this->setOrderBy($orderBy);
+            $this->setAsc($asc);
+        }
+    }
+
+    /** @return bool */
+    public function orderByPrice(): bool
+    {
+        return $this->orderBy === 'price';
+    }
+
+    /** @return bool */
+    public function orderByNewest(): bool
+    {
+        return $this->orderBy === 'new';
+    }
+
+    /** @return bool */
+    public function orderByPopularity(): bool
+    {
+        return $this->orderBy === 'popularity';
+    }
+
+    /** @return bool|null */
+    public function asc(): ?bool
+    {
+        return $this->asc;
+    }
+
+    /** @param string $orderBy */
+    private function setOrderBy(string $orderBy): void
+    {
+        if (in_array($orderBy, $this->orderByAllowed)) {
+            $this->orderBy = $orderBy;
+        }
+    }
+
+    /** @param string $asc */
+    private function setAsc(string $asc): void
+    {
+        if (in_array($asc, $this->ascAllowed)) {
+            $this->asc = $asc === 'up';
+        }
+    }
+}
 
 class UserRegisterFactory
 {
