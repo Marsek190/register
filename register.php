@@ -167,6 +167,15 @@ class UserRegisterFactory
     }
 }
 
+
+class CurrentTimeInteractor
+{
+    public function execute(): DateTime
+    {
+        return new DateTime();
+    }
+}
+
 class Id
 {
     private string $id;
