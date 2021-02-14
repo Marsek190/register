@@ -253,9 +253,9 @@ class UserRegisterFactory
 
 class CurrentTimeInteractor
 {
-    public function execute(): DateTime
+    public function execute(): \DateTime
     {
-        return new DateTime();
+        return new \DateTime();
     }
 }
 
@@ -439,5 +439,22 @@ class RegistrationStepHandlerFactory
 	    2 => RegistrationStepSecond::class,
 	    3 => RegistrationStepThird::class,
 	];
+    }
+}
+
+
+class RegistrationController
+{
+    public function __construct(
+	private RegistrationStepHandlerFactory $handlerFactory, 
+	private RegistrationStepHandlerFactory $requestDtoFactory
+    ) { }
+
+    public function registerAction(RequestInterface $request)
+    {
+	$handler = $this->handlerFactory->create((int) $request->post('step'));
+        $userRegisterDto = $this->requestDtoFactory->create($request);
+	
+	$handler->process($userRegisterDto);
     }
 }
