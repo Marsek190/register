@@ -225,7 +225,7 @@ class UserRegisterFactory
     {
 	$userRegister = new UserRegister();
         $userRegister->id = $this->uuidGenerator->next();
-        $userRegister->name = $userRegisterDto->name;
+        $userRegister->name = $userRegisterDto->name;  
 	// ...
         $userRegister->phone = $phone;
         $userRegister->email = $email;
@@ -403,9 +403,8 @@ class RequestDtoFactory
 	$this->stepToDtoMap = $this->getStepToDtoMap();
     }
 
-    public function create(RequestInterface $request): UserRegisterDto
+    public function create(RequestInterface $request, int $step): UserRegisterDto
     {
-	$step = !is_null($request->post('step')) ? (int) $request->post('step') : null;
 	if (!isset($this->stepToDtoMap[$step])) {
 	    // ...
 	}
@@ -491,14 +490,22 @@ class RegistrationController
 {
     public function __construct(
 	private RegistrationStepHandlerFactory $handlerFactory, 
-	private RegistrationStepHandlerFactory $requestDtoFactory
+	private RegistrationStepHandlerFactory $requestDtoFactory,
+	private ResponseFactory $responseFactory
     ) { }
 
-    public function registerAction(RequestInterface $request)
+    public function registerAction(RequestInterface $request): ResponseInterface
     {
-	$handler = $this->handlerFactory->create((int) $request->post('step'));
-        $userRegisterDto = $this->requestDtoFactory->create($request);
+	if (!$request->post('step')) {
+	    return $this->responseFactory->createFail();
+	}
+	
+	$step = (int) $request->post('step');
+	$handler = $this->handlerFactory->create($step);
+        $userRegisterDto = $this->requestDtoFactory->create($request, $step);
 	
 	$handler->process($userRegisterDto);
+
+        return $this->responseFactory->createSuccess();
     }
 }
