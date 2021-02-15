@@ -63,19 +63,22 @@ final class RegistrationStepFirst implements RegistrationStep
 	if ($errors = $this->validator->validate($userRegisterDto)) {
 	    throw new BadUserRegisterDto($errors);
 	}
+	    
+	$phone = new Phone($userRegisterDto->phone);
+	$email = new Email($userRegisterDto->email);
 	
-	if (!$this->guardByContactInformation($userRegisterDto->phone, $userRegisterDto->email)) {
+	if (!$this->guardByContactInformation($phone, $email)) {
 	    throw new UserAlreadyExistsError();
 	}
 
-	$userRegister = $this->userRegisterFactory->uploadFromStepOne($userRegisterDto);
+	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
         $id = $this->userRegisterRepo->save($userRegister);
         $this->sessionContainer->add(self::class, $id);
     }
 
     // ...
 
-    private function guardByContactInformation(string $phone, string $email): bool
+    private function guardByContactInformation(Phone $phone, Email $email): bool
     {
 	$guardDto = new ContactInformationGuardDto($phone, $email);
 
@@ -218,13 +221,13 @@ class SorterRequest implements RequestInterface
 
 class UserRegisterFactory
 {
-    public function uploadFromStepOne(UserRegisterStepFirstDto $userRegisterDto): UserRegister
+    public function uploadFromStepOne(Phone $phone, Email $email, UserRegisterStepFirstDto $userRegisterDto): UserRegister
     {
 	$userRegister = new UserRegister();
         $userRegister->id = $this->uuidGenerator->next();
         $userRegister->name = $userRegisterDto->name;
-        $userRegister->phone = new Phone($userRegisterDto->phone);
-        $userRegister->email = $userRegisterDto->email;
+        $userRegister->phone = $phone;
+        $userRegister->email = $email;
         $userRegister->step = new Step();
        
   	return $userRegister;
@@ -252,11 +255,23 @@ class UserRegisterFactory
 
 class UserRegisterIdFetcher
 {
-    public function __construct(private SessionInterface $session, private PropertyBag $cookie) { }
+    public function __construct(
+        private SessionInterface $session, 
+	private PropertyBag $cookie, 
+	private HasherInterface $hasher
+    ) { }
 
     public function fetch(): ?int
     {
-	return $this->session->get($this->getName()) ?? null;
+	if ($this->session->has($this->getName())) {
+	    return $this->session->get($this->getName());
+	}
+	
+	if ($this->cookie->has($this->getName())) {
+	    return $this->hasher->ecncrypt($this->cookie->get($this->getName()));
+	}
+	
+	return null;
     }
 	
     public function getName(): string
