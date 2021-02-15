@@ -91,7 +91,7 @@ final class RegistrationStepSecond implements RegistrationStep
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private SessionContainerInterface $sessionContainer,
+	private UserRegisterIdFetcher $fetcher,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -101,7 +101,7 @@ final class RegistrationStepSecond implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 
-	$id = $this->sessionContainer->get(RegistrationStepFirst::class);
+	$id = $this->fetcher->fetch();
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
 	// ...
@@ -115,7 +115,7 @@ final class RegistrationStepThird implements RegistrationStep
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private SessionContainerInterface $sessionContainer,
+	private UserRegisterIdFetcher $fetcher,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -125,7 +125,7 @@ final class RegistrationStepThird implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 
-	$id = $this->sessionContainer->get(RegistrationStepFirst::class);
+	$id = $this->fetcher->fetch();
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
 	// ...
@@ -288,7 +288,8 @@ class UserRegisterIdSaver extends UserRegisterIdManager
 {
     public function save(int $id): void
     {
-    	// ...
+    	$this->session->add($this->getName(), $id);
+	$this->cookie->add($this->getName(), $this->hasher->decrypt($id));
     }
 }
 
