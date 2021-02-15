@@ -226,6 +226,7 @@ class UserRegisterFactory
 	$userRegister = new UserRegister();
         $userRegister->id = $this->uuidGenerator->next();
         $userRegister->name = $userRegisterDto->name;
+	// ...
         $userRegister->phone = $phone;
         $userRegister->email = $email;
         $userRegister->step = new Step();
@@ -378,6 +379,20 @@ class Phone
     }    
 }
 
+class Email
+{
+    private string $email;	
+
+    public function __construct(string $email)
+    {
+	$this->email = mb_convert_case($email, MB_CASE_LOWER, mb_detect_encoding($email));
+    }
+
+    public function value(): string
+    {
+	return $this->email;
+    }
+}
 
 class RequestDtoFactory
 {
