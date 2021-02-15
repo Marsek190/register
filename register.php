@@ -47,7 +47,7 @@ final class RegistrationStepFirst implements RegistrationStep
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
 	private GuardRepositoryInterface $guardRepo,
-	private SessionContainerInterface $sessionContainer,
+	private UserRegisterIdSaver $saver,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -73,7 +73,7 @@ final class RegistrationStepFirst implements RegistrationStep
 
 	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
         $id = $this->userRegisterRepo->save($userRegister);
-        $this->sessionContainer->add('user_register_id', $id);
+        $this->saver->save($id);
     }
 
     // ...
@@ -254,14 +254,22 @@ class UserRegisterFactory
     }
 }
 
-class UserRegisterIdFetcher
+abstract class UserRegisterIdManager
 {
     public function __construct(
         private SessionInterface $session,
 	private PropertyBag $cookie, 
 	private HasherInterface $hasher
-    ) { }
+    ) { }	
 
+    protected function getName(): string
+    {
+	return 'user_register_id';
+    }
+}
+
+class UserRegisterIdFetcher extends UserRegisterIdManager
+{
     public function fetch(): ?int
     {
 	if ($this->session->has($this->getName())) {
@@ -274,10 +282,13 @@ class UserRegisterIdFetcher
 	
 	return null;
     }
-	
-    private function getName(): string
+}
+
+class UserRegisterIdSaver extends UserRegisterIdManager
+{
+    public function save(int $id): void
     {
-	return 'user_register_id';
+    	// ...
     }
 }
 
