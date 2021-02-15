@@ -73,7 +73,7 @@ final class RegistrationStepFirst implements RegistrationStep
 
 	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
         $id = $this->userRegisterRepo->save($userRegister);
-        $this->sessionContainer->add(self::class, $id);
+        $this->sessionContainer->add(UserRegister::class . '_id', $id);
     }
 
     // ...
