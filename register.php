@@ -73,7 +73,7 @@ final class RegistrationStepFirst implements RegistrationStep
 
 	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
         $id = $this->userRegisterRepo->save($userRegister);
-        $this->sessionContainer->add(UserRegister::class . '_id', $id);
+        $this->sessionContainer->add('user_register_id', $id);
     }
 
     // ...
@@ -257,7 +257,7 @@ class UserRegisterFactory
 class UserRegisterIdFetcher
 {
     public function __construct(
-        private SessionInterface $session, 
+        private SessionInterface $session,
 	private PropertyBag $cookie, 
 	private HasherInterface $hasher
     ) { }
@@ -275,7 +275,7 @@ class UserRegisterIdFetcher
 	return null;
     }
 	
-    public function getName(): string
+    private function getName(): string
     {
 	return 'user_register_id';
     }
