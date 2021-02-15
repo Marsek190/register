@@ -252,16 +252,16 @@ class UserRegisterFactory
 
 class UserRegisterIdFetcher
 {
-    public function __construct(private SessionContainerInterface $container, private PropertyBag $cookie) { }
+    public function __construct(private SessionInterface $session, private PropertyBag $cookie) { }
 
     public function fetch(): ?int
     {
-	// ...
+	return $this->session->get($this->getName()) ?? null;
     }
 	
     public function getName(): string
-    { 
-	return UserRegister::class . '_id';
+    {
+	return 'user_register_id';
     }
 }
 
