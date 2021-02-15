@@ -250,6 +250,15 @@ class UserRegisterFactory
     }
 }
 
+class UserRegisterIdFetcher
+{
+    public function __construct(private SessionContainerInterface $container, private CookieStorageInterface $cookieStorage) { }
+
+    public function fetch(): ?int
+    {
+	// ...
+    }
+}
 
 class CurrentTimeInteractor
 {
