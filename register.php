@@ -47,7 +47,7 @@ final class RegistrationStepFirst implements RegistrationStep
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
 	private GuardRepositoryInterface $guardRepo,
-	private UserRegisterIdManager $manager,
+	private SessionInterface $session,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -73,7 +73,7 @@ final class RegistrationStepFirst implements RegistrationStep
 
 	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
         $id = $this->userRegisterRepo->save($userRegister);
-        $this->manager->save($id);
+        $this->session->add(UserRegister::class . '_id', $id);
     }
 
     // ...
@@ -91,7 +91,7 @@ final class RegistrationStepSecond implements RegistrationStep
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private UserRegisterIdManager $manager,
+	private SessionInterface $session,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -101,7 +101,7 @@ final class RegistrationStepSecond implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 
-	$id = $this->manager->fetch();
+	$id = $this->session->get(UserRegister::class . '_id');
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
 	// ...
@@ -115,7 +115,7 @@ final class RegistrationStepThird implements RegistrationStep
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private UserRegisterIdManager $manager,
+	private SessionInterface $session,
 	private UserRegisterFactory $userRegisterFactory
     ) { }
 
@@ -125,13 +125,13 @@ final class RegistrationStepThird implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 
-	$id = $this->manager->fetch();
+	$id = $this->session->get(UserRegister::class . '_id');
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
 	// ...
 	$userRegister = $this->userRegisterFactory->uploadFromStepThree($userRegisterDto, $userRegisterTmp);
 	$this->userRegisterRepo->save($userRegister);
-	$this->manager->destroy();
+	$this->session->remove(UserRegister::class . '_id');
     }
 }
 
@@ -251,44 +251,6 @@ class UserRegisterFactory
 	$userRegister->step->next();
 
 	return $userRegister;
-    }
-}
-
-class UserRegisterIdManager
-{
-    public function __construct(
-        private SessionInterface $session,
-	private PropertyBag $cookie, 
-	private HasherInterface $hasher
-    ) { }	
-	
-    public function fetch(): ?int
-    {
-	if ($this->session->has($this->getName())) {
-	    return $this->session->get($this->getName());
-	}
-	
-	if ($this->cookie->has($this->getName())) {
-	    return $this->hasher->ecncrypt($this->cookie->get($this->getName()));
-	}
-	
-	return null;
-    }
-	
-    public function save(int $id): void
-    {
-    	$this->session->add($this->getName(), $id);
-	$this->cookie->add($this->getName(), $this->hasher->decrypt($id));
-    }
-	
-    public function destroy(): void
-    {
-	// ...
-    }
-
-    private function getName(): string
-    {
-	return 'user_register_id';
     }
 }
 
