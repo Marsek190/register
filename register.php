@@ -100,7 +100,11 @@ final class RegistrationStepSecond implements RegistrationStep
 	if ($errors = $this->validator->validate($userRegisterDto)) {
 	    throw new BadUserRegisterDto($errors);
 	}
-
+	
+	if (!$this->session->has(UserRegister::class . '_id')) {
+	    // ...
+	} 
+	    
 	$id = $this->session->get(UserRegister::class . '_id');
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
@@ -124,7 +128,11 @@ final class RegistrationStepThird implements RegistrationStep
 	if ($errors = $this->validator->validate($userRegisterDto)) {
 	    throw new BadUserRegisterDto($errors);
 	}
-
+	
+	if (!$this->session->has(UserRegister::class . '_id')) {
+	    // ...
+	}
+	    
 	$id = $this->session->get(UserRegister::class . '_id');
 	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
 	
@@ -314,8 +322,8 @@ class Step
 class ContactInformationGuardDto
 {
     public function __construct(
-	public string $phone, 
-	public string $email
+	public Phone $phone, 
+	public Email $email
     ) { }
 }
 
