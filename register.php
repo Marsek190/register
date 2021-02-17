@@ -113,14 +113,14 @@ final class RegistrationStepThird implements RegistrationStep
 	
 	// ...
 	$userRegister = $this->userRegisterFactory->create($userRegisterDto);
+	// call in repo
+	// $entity = $this->entityConverter->convertToDBALEntity($userRegister);
 	$id = $this->userRegisterRepo->save($userRegister);
 	$this->session->set(UserRegister::class . '_id', $id);
     }
 }
 
-interface RequestInterface { }
-
-class SorterRequest implements RequestInterface
+class SorterRequest
 {
     /** @var string|null */
     private ?string $orderBy = null;
@@ -211,7 +211,7 @@ class UserRegisterFactory
         $userRegister->name = $userRegisterDto->name;  
 	// ...
         $userRegister->phone = new Phone($userRegisterDto->phone);
-        $userRegister->email = new Email ($userRegisterDto->email);
+        $userRegister->email = new Email($userRegisterDto->email);
         $userRegister->company = $userRegisterDto->company;
 	$userRegister->verified = true;
 	$userRegister->createdAt = $this->dateTimeFactory->current();
@@ -350,8 +350,6 @@ interface UserRegisterConverterInterface
 
 class UserRegisterConverter implements UserRegisterConverterInterface
 {
-    public function __construct(private \SharedKernel\Infrastructure\HydratorInterface $hydrator) { }
-
     public function convertToDBALEntity(UserRegister $userRegister): UserRegisterEntity
     {
 	// ...
