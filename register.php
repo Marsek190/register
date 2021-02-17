@@ -45,10 +45,7 @@ final class RegistrationStepFirst implements RegistrationStep
 {
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
-	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private GuardRepositoryInterface $guardRepo,
-	private SessionInterface $session,
-	private UserRegisterFactory $userRegisterFactory
+	private GuardRepositoryInterface $guardRepo
     ) { }
 
     /**
@@ -70,10 +67,6 @@ final class RegistrationStepFirst implements RegistrationStep
 	if (!$this->guardByContactInformation($phone, $email)) {
 	    throw new UserAlreadyExistsError();
 	}
-
-	$userRegister = $this->userRegisterFactory->uploadFromStepOne($phone, $email, $userRegisterDto);
-        $id = $this->userRegisterRepo->save($userRegister);
-        $this->session->add(UserRegister::class . '_id', $id);
     }
 
     // ...
@@ -90,9 +83,7 @@ final class RegistrationStepSecond implements RegistrationStep
 {
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
-	private UserRegisterRepositoryInterface $userRegisterRepo,
-	private SessionInterface $session,
-	private UserRegisterFactory $userRegisterFactory
+	private GuardRepositoryInterface $guardRepo
     ) { }
 
     public function process(UserRegisterDto $userRegisterDto): void
@@ -101,16 +92,7 @@ final class RegistrationStepSecond implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 	
-	if (!$this->session->has(UserRegister::class . '_id')) {
-	    // ...
-	} 
-	    
-	$id = $this->session->get(UserRegister::class . '_id');
-	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
-	
 	// ...
-	$userRegister = $this->userRegisterFactory->uploadFromStepTwo($userRegisterDto, $userRegisterTmp);
-	$this->userRegisterRepo->save($userRegister);
     }
 }
 
@@ -129,17 +111,10 @@ final class RegistrationStepThird implements RegistrationStep
 	    throw new BadUserRegisterDto($errors);
 	}
 	
-	if (!$this->session->has(UserRegister::class . '_id')) {
-	    // ...
-	}
-	    
-	$id = $this->session->get(UserRegister::class . '_id');
-	$userRegisterTmp = $this->userRegisterRepo->findByIdOrFail($id);
-	
 	// ...
-	$userRegister = $this->userRegisterFactory->uploadFromStepThree($userRegisterDto, $userRegisterTmp);
-	$this->userRegisterRepo->save($userRegister);
-	$this->session->remove(UserRegister::class . '_id');
+	$userRegister = $this->userRegisterFactory->create($userRegisterDto);
+	$id = $this->userRegisterRepo->save($userRegister);
+	$this->session->set(UserRegister::class . '_id', $id);
     }
 }
 
@@ -229,36 +204,19 @@ class SorterRequest implements RequestInterface
 
 class UserRegisterFactory
 {
-    public function uploadFromStepOne(Phone $phone, Email $email, UserRegisterStepFirstDto $userRegisterDto): UserRegister
+    public function create(UserRegisterStepFirstDto $userRegisterDto): UserRegister
     {
 	$userRegister = new UserRegister();
         $userRegister->id = $this->uuidGenerator->next();
         $userRegister->name = $userRegisterDto->name;  
 	// ...
-        $userRegister->phone = $phone;
-        $userRegister->email = $email;
-        $userRegister->step = new Step();
-       
-  	return $userRegister;
-    }
-
-    public function uploadFromStepTwo(UserRegisterStepSecondDto $userRegisterDto, UserRegister $userRegister): UserRegister
-    {
-	$userRegister->company = $userRegisterDto->company;
-	$userRegister->step->next();
-	// ...	
-
-	return $userRegister;
-    }    
-
-    public function uploadFromStepThree(UserRegisterStepThirdDto $userRegisterDto, UserRegister $userRegister): UserRegister
-    {
-	// ...	
+        $userRegister->phone = new Phone($userRegisterDto->phone);
+        $userRegister->email = new Email ($userRegisterDto->email);
+        $userRegister->company = $userRegisterDto->company;
 	$userRegister->verified = true;
 	$userRegister->createdAt = $this->dateTimeFactory->current();
-	$userRegister->step->next();
-
-	return $userRegister;
+       
+  	return $userRegister;
     }
 }
 
@@ -293,30 +251,6 @@ class Id
     {
 	return $this->id;
     }
-}
-
-class Step
-{
-    private int $current = 1;
-   
-    private const MAX_STEP_COUNT = 3;
-
-    public function current(): int
-    {
-	return $this->current;
-    }
-
-    public function next(): self
-    {
-	if ($this->current > self::MAX_STEP_COUNT) {
-	    throw new \DomainException('');
-	}
-	
-        $this->current++;
-	
-	return $this;
-    }
-
 }
 
 class ContactInformationGuardDto
