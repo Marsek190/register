@@ -367,7 +367,7 @@ class RegistrationStepHandlerFactory
 {
     private $stepToHandlerMap;
 
-    public function __construct(private Container $container) 
+    public function __construct(private Container $container)
     { 
 	$this->stepToHandlerMap = $this->getStepToHandlerMap();
     } 
@@ -415,12 +415,17 @@ class RegistrationController
 	    return $this->responseFactory->createFail();
 	}
 	
-	$step = (int) $request->post('step');
-	$handler = $this->handlerFactory->create($step);
-        $userRegisterDto = $this->requestDtoFactory->create($request, $step);
+	try {
+	    $step = (int) $request->post('step');
+	    $handler = $this->handlerFactory->create($step);
+            $userRegisterDto = $this->requestDtoFactory->create($request, $step);
 	
-	$handler->process($userRegisterDto);
+	    $handler->process($userRegisterDto);
 
-        return $this->responseFactory->createSuccess();
+            return $this->responseFactory->createSuccess();
+	} catch (\Exception $e) {
+    	    return $this->responseFactory->createFromException($e);
+	}
+
     }
 }
