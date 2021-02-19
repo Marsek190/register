@@ -406,6 +406,12 @@ class ResponseFactory
 	return new Response('', 200);
     }
 
+    public function createFail(): ResponseInterface
+    {
+	// отдаем 501 статус без вывода ошибки
+    	return new Response('', 501);
+    }
+
     public function createFromException(\Exception $e): ResponseInterface
     {
 	switch (get_class($e)) {
@@ -439,6 +445,7 @@ class RegistrationController
 	    $handler = $this->handlerFactory->create($step);
             $userRegisterDto = $this->requestDtoFactory->create($request, $step);
 	
+	    // todo: обернуть в шину для логирования серверных ошибок
 	    $handler->process($userRegisterDto);
 
             return $this->responseFactory->createSuccess();
