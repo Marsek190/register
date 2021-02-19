@@ -431,7 +431,8 @@ class RegistrationController
     public function __construct(
 	private RegistrationStepHandlerFactory $handlerFactory,
 	private RequestDtoFactory $requestDtoFactory,
-	private ResponseFactory $responseFactory
+	private ResponseFactory $responseFactory,
+        private LoggerInterface $logger
     ) { }
 
     public function registerAction(RequestInterface $request): ResponseInterface
