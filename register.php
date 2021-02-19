@@ -398,6 +398,27 @@ class RegistrationStepHandlerFactory
     }
 }
 
+class ResponseFactory
+{
+    // ...
+    public function createSuccess(): ResponseInterface
+    {
+	return new Response('', 200);
+    }
+
+    public function createFromException(\Exception $e): ResponseInterface
+    {
+	switch (get_class($e)) {BadUserRegisterDto
+	    case BadUserRegisterDto::class:
+		return new Response($e->getErrors(), 401);
+	    case UserAlreadyExistsError::class:
+ 		return new Response(['Пользователь с таким телефоном или почтой уже существует.'], 401);
+	    // ...
+	}
+
+	return new Response500();
+    }
+}
 
 class RegistrationController
 {
