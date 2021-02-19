@@ -451,6 +451,7 @@ class RegistrationController
             return $this->responseFactory->createSuccess();
 	} catch (\Exception $e) {
 	    if (!($e instanceof UserRegistrationError)) {
+		// логируем серверную ошибку
 	        $this->logger->error($this->getTags(), $e->getMessage());
 	    }
 
