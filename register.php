@@ -475,8 +475,9 @@ class ResponseFactory
 class RegistrationController
 {
     public function __construct(
-	private RegistrationStepHandlerFactory $handlerFactory, 
-	private RegistrationStepHandlerFactory $requestDtoFactory,
+	private RegistrationStepHandlerFactory $registerHandlerFactory, 
+        private LoggerHandlerFactory $loggerHandlerFactory, 	    
+	private RequestDtoFactory $requestDtoFactory,
 	private ResponseFactory $responseFactory
     ) { }
 
@@ -488,11 +489,13 @@ class RegistrationController
 	
 	try {
 	    $step = (int) $request->post('step');
-	    $handler = $this->handlerFactory->create($step);
+	    $registerHandler = $this->registerHandlerFactory->create($step);
             $userRegisterDto = $this->requestDtoFactory->create($request, $step);
 	
 	    // todo: обернуть в шину для логирования серверных ошибок
-	    $handler->process($userRegisterDto);
+	    $loggerHandler = $this->loggerHandlerFactory->create($registerHandler);
+		
+	    $loggerHandler->handle($userRegisterDto);
 
             return $this->responseFactory->createSuccess();
 	} catch (\Exception $e) {
