@@ -416,7 +416,7 @@ class ResponseFactory
 	    // ...
 	}
 
-	return new Response500();
+	return $this->createFail();
     }
 }
 
