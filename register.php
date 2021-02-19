@@ -410,7 +410,7 @@ class ResponseFactory
     {
 	switch (get_class($e)) {
 	    case BadUserRegisterDto::class:
-		return new Response($e->getErrors(), 401);
+		return new Response(array_values($e->getErrors()), 401);
 	    case UserAlreadyExistsError::class:
  		return new Response(['Пользователь с таким телефоном или почтой уже существует.'], 401);
 	    // ...
