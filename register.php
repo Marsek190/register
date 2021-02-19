@@ -408,7 +408,7 @@ class ResponseFactory
 
     public function createFromException(\Exception $e): ResponseInterface
     {
-	switch (get_class($e)) {BadUserRegisterDto
+	switch (get_class($e)) {
 	    case BadUserRegisterDto::class:
 		return new Response($e->getErrors(), 401);
 	    case UserAlreadyExistsError::class:
