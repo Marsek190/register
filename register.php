@@ -398,52 +398,6 @@ class RegistrationStepHandlerFactory
     }
 }
 
-class LoggerHandlerFactory
-{
-    public function __construct(
-	private Container $container
-    ) { }
-
-    public function create(RegistrationStep $handler): LoggerHandler
-    {
-    	return new LoggerHandler(
-	    $this->container->get(LoggerInterface::class),
-	    $handler
-	);
-    }
-}
-
-class LoggerHandler
-{
-    public function __construct(
-	private LoggerInterface $logger,
-        private RegistrationStep $handler
-    ) { }
-
-    public function handle(UserRegisterDto $userRegisterDto): void
-    {
-    	try {
-	    $this->handler->process($userRegisterDto);
-	} catch (\Exception $e) {
-	    if (!($e instanceof UserRegistrationError)) {
-	        $this->logger->error($this->getTags(), $e->getMessage());
-	    }
-	
-	    // прокидываем инстанс для создания респонса
-	    throw $e;
-	}
-    }
-
-    private function getTags(): array
-    {
-    	return [
-	    'user_registration',
-	    'site',
- 	    // ...
-	];
-    }
-}
-
 class ResponseFactory
 {
     // ...
@@ -475,32 +429,41 @@ class ResponseFactory
 class RegistrationController
 {
     public function __construct(
-	private RegistrationStepHandlerFactory $registerHandlerFactory, 
-        private LoggerHandlerFactory $loggerHandlerFactory, 	    
+	private RegistrationStepHandlerFactory $handlerFactory,
 	private RequestDtoFactory $requestDtoFactory,
 	private ResponseFactory $responseFactory
     ) { }
 
     public function registerAction(RequestInterface $request): ResponseInterface
     {
-	if (!$request->post('step')) {
-	    return $this->responseFactory->createFail();
+	if (is_null($request->post('step')) {
+	    // ...
 	}
 	
 	try {
 	    $step = (int) $request->post('step');
-	    $registerHandler = $this->registerHandlerFactory->create($step);
+	    $handler = $this->handlerFactory->create($step);
             $userRegisterDto = $this->requestDtoFactory->create($request, $step);
-	
-	    // todo: обернуть в шину для логирования серверных ошибок
-	    $loggerHandler = $this->loggerHandlerFactory->create($registerHandler);
 		
-	    $loggerHandler->handle($userRegisterDto);
+	    $handler->process($userRegisterDto);
 
             return $this->responseFactory->createSuccess();
 	} catch (\Exception $e) {
+	    if (!($e instanceof UserRegistrationError)) {
+	        $this->logger->error($this->getTags(), $e->getMessage());
+	    }
+
     	    return $this->responseFactory->createFromException($e);
 	}
 
+    }
+
+    private function getTags(): array
+    {
+    	return [
+	    'user_registration',
+	    'site',
+ 	    // ...
+	];
     }
 }
