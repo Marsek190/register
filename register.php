@@ -398,6 +398,52 @@ class RegistrationStepHandlerFactory
     }
 }
 
+class LoggerHandlerFactory
+{
+    public function __construct(
+	private Container $container
+    ) { }
+
+    public function create(RegistrationStep $handler): LoggerHandler
+    {
+    	return new LoggerHandler(
+	    $this->container->get(LoggerInterface::class),
+	    $handler
+	);
+    }
+}
+
+class LoggerHandler
+{
+    public function __construct(
+	private LoggerInterface $logger,
+        private RegistrationStep $handler
+    ) { }
+
+    public function handle(UserRegisterDto $userRegisterDto): void
+    {
+    	try {
+	    $this->handler->process($userRegisterDto);
+	} catch (\Exception $e) {
+	    if (!($e instanceof UserRegistrationError)) {
+	        $this->logger->error($this->getTags(), $e->getMessage());
+	    }
+	
+	    // прокидываем инстанс для создания респонса
+	    throw $e;
+	}
+    }
+
+    private function getTags(): array
+    {
+    	return [
+	    'user_registration',
+	    'site',
+ 	    // ...
+	];
+    }
+}
+
 class ResponseFactory
 {
     // ...
