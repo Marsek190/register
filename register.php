@@ -104,7 +104,8 @@ final class RegistrationStepThird implements RegistrationStep
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
 	private SessionInterface $session,
-	private UserRegisterFactory $userRegisterFactory
+	private UserRegisterFactory $userRegisterFactory,
+	private UserRegisterConverter $userRegisterConverter
     ) { }
 
     public function process(UserRegisterDto $userRegisterDto): void
@@ -114,10 +115,12 @@ final class RegistrationStepThird implements RegistrationStep
 	}
 	
 	// ...
+	    
+	// конвертируем дто в доменную модель
 	$userRegister = $this->userRegisterFactory->create($userRegisterDto);
-	// call in repo
-	// $entity = $this->entityConverter->convertToDBALEntity($userRegister);
-	$id = $this->userRegisterRepo->save($userRegister);
+	// конвертируем модель в сущность
+	$userRegisterEntity = $this->userRegisterConverter->convertToEntity($userRegister);
+	$id = $this->userRegisterRepo->save($userRegisterEntity);
 	$this->session->set(UserRegister::class . '_id', $id);
     }
 }
@@ -346,18 +349,18 @@ class RequestDtoFactory
 
 interface UserRegisterConverterInterface
 {
-    public function convertToDBALEntity(UserRegister $userRegister): UserRegisterEntity;
-    public function convertToModel(UserRegisterEntity $userRegister): UserRegister;
+    public function convertToEntity(UserRegister $model): UserRegisterEntity;
+    public function convertToModel(UserRegisterEntity $entity): UserRegister;
 }
 
 class UserRegisterConverter implements UserRegisterConverterInterface
 {
-    public function convertToDBALEntity(UserRegister $userRegister): UserRegisterEntity
+    public function convertToEntity(UserRegister $model): UserRegisterEntity
     {
 	// ...
     }
 
-    public function convertToModel(UserRegisterEntity $userRegister): UserRegister
+    public function convertToModel(UserRegisterEntity $entity): UserRegister
     {
 	// ...	
     }
