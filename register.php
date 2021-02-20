@@ -57,6 +57,8 @@ final class RegistrationStepFirst implements RegistrationStep
     public function process(UserRegisterDto $userRegisterDto): void
     {
 	// ...
+	Assert::isInstanceOf($userRegisterDto, UserRegisterStepFirstDto::class);
+
 	if ($errors = $this->validator->validate($userRegisterDto)) {
 	    throw new BadUserRegisterDto($errors);
 	}
