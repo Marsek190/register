@@ -216,8 +216,12 @@ class UserRegisterFactory
 	    new Phone($userRegisterDto->phone),
 	    // ...
 	);
+	$fullName = new FullName(
+	    $userRegisterDto->firstName,
+	    $userRegisterDto->secondName
+	);
 	$personalData = new PersonalData(
-	    $userRegisterDto->name,
+	    $fullName,
 	    $userRegisterDto->taxpayerNumber,
 	    $userRegisterDto->socialNumber,
 	    // ...
