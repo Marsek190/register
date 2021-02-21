@@ -211,17 +211,24 @@ class UserRegisterFactory
 {
     public function create(UserRegisterStepFirstDto $userRegisterDto): UserRegister
     {
-	return (new UserRegister())
-	    ->builder()
-	    ->id($this->uuidGenerator->next())
-	    ->name($userRegisterDto->name)
-	    ->phone(new Phone($userRegisterDto->phone))
-	    //...
-	    ->email(new Email($userRegisterDto->email))
-	    ->company($userRegisterDto->company)
-	    ->verified(true)
-	    ->createdAt($this->dateTimeFactory->current())
-	    ->build();
+	$personalData = new PersonalData(
+	    $userRegisterDto->name,
+	    new Email($userRegisterDto->name),
+	    new Phone($userRegisterDto->phone),
+	    // ...
+	);
+	$companyInfo = new CompanyInfo(
+	    // ...
+	);
+
+	// ...    
+	    
+	return new UserRegister(
+	    Id::next(), 
+	    $personalData, 
+            $companyInfo,
+	    // ...
+	);
     }
 }
 
