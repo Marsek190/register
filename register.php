@@ -247,6 +247,12 @@ class UserRegisterFactory
 	    // ...
 	);
     }
+	
+    // or
+    // public function getContanctData(UserRegisterStepFirstDto $userRegisterDto) { }
+    // public function getPersonalData(UserRegisterStepFirstDto $userRegisterDto) { }
+    // public function getLocation(UserRegisterStepFirstDto $userRegisterDto) { }
+    // public function getCompanyInfo(UserRegisterStepFirstDto $userRegisterDto) { }
 }
 
 class CurrentTimeInteractor
