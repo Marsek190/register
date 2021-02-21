@@ -211,10 +211,15 @@ class UserRegisterFactory
 {
     public function create(UserRegisterStepFirstDto $userRegisterDto): UserRegister
     {
-	$personalData = new PersonalData(
-	    $userRegisterDto->name,
+	$contactData = new ContactData(
 	    new Email($userRegisterDto->name),
 	    new Phone($userRegisterDto->phone),
+	    // ...
+	);
+	$personalData = new PersonalData(
+	    $userRegisterDto->name,
+	    $userRegisterDto->taxpayerNumber,
+	    $userRegisterDto->socialNumber,
 	    // ...
 	);
 	$location = new Location(
@@ -231,6 +236,7 @@ class UserRegisterFactory
 	    
 	return new UserRegister(
 	    Id::next(), 
+	    $contactData,
 	    $personalData,
 	    $location,
             $companyInfo,
