@@ -217,6 +217,12 @@ class UserRegisterFactory
 	    new Phone($userRegisterDto->phone),
 	    // ...
 	);
+	$location = new Location(
+	    $userRegisterDto->cityId,
+	    $userRegisterDto->street,
+	    $userRegisterDto->house,
+	    $userRegisterDto->flat
+	);
 	$companyInfo = new CompanyInfo(
 	    // ...
 	);
@@ -225,7 +231,8 @@ class UserRegisterFactory
 	    
 	return new UserRegister(
 	    Id::next(), 
-	    $personalData, 
+	    $personalData,
+	    $location,
             $companyInfo,
 	    // ...
 	);
