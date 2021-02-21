@@ -377,22 +377,11 @@ class RequestDtoFactory
     }
 }
 
-interface UserRegisterConverterInterface
-{
-    public function convertToEntity(UserRegister $model): UserRegisterEntity;
-    public function convertToModel(UserRegisterEntity $entity): UserRegister;
-}
-
-class UserRegisterConverter implements UserRegisterConverterInterface
+class UserRegisterConverter
 {
     public function convertToEntity(UserRegister $model): UserRegisterEntity
     {
 	// ...
-    }
-
-    public function convertToModel(UserRegisterEntity $entity): UserRegister
-    {
-	// ...	
     }
 }
 
