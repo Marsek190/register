@@ -117,10 +117,11 @@ final class RegistrationStepThird implements RegistrationStep
 	// ...
 	    
 	// конвертируем дто в доменную модель
-	$userRegister = $this->userRegisterFactory->create($userRegisterDto);
+	$id = Id::next();
+	$userRegister = $this->userRegisterFactory->create($id, $userRegisterDto);
 	// конвертируем модель в сущность
 	$userRegisterEntity = $this->userRegisterConverter->convertToEntity($userRegister);
-	$id = $this->userRegisterRepo->save($userRegisterEntity);
+	$this->userRegisterRepo->save($userRegisterEntity);
 	$this->session->set(UserRegister::class . '_id', $id);
     }
 }
@@ -209,7 +210,7 @@ class SorterRequest
 
 class UserRegisterFactory
 {
-    public function create(UserRegisterStepFirstDto $userRegisterDto): UserRegister
+    public function create(Id $id, UserRegisterStepFirstDto $userRegisterDto): UserRegister
     {
 	$contactData = new ContactData(
 	    new Email($userRegisterDto->name),
@@ -239,7 +240,7 @@ class UserRegisterFactory
 	// ...    
 	    
 	return new UserRegister(
-	    Id::next(), 
+	    $id, 
 	    $contactData,
 	    $personalData,
 	    $location,
