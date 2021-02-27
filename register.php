@@ -104,8 +104,7 @@ final class RegistrationStepThird implements RegistrationStep
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
 	private UserRegisterRepositoryInterface $userRegisterRepo,
 	private SessionInterface $session,
-	private UserRegisterFactory $userRegisterFactory,
-	private UserRegisterConverter $userRegisterConverter
+	private UserRegisterFactory $userRegisterFactory
     ) { }
 
     public function process(UserRegisterDto $userRegisterDto): void
@@ -119,9 +118,7 @@ final class RegistrationStepThird implements RegistrationStep
 	// конвертируем дто в доменную модель
 	$id = Id::next();
 	$userRegister = $this->userRegisterFactory->create($id, $userRegisterDto);
-	// конвертируем модель в сущность
-	$userRegisterEntity = $this->userRegisterConverter->convertToEntity($userRegister);
-	$this->userRegisterRepo->save($userRegisterEntity);
+	$this->userRegisterRepo->save($userRegister);
 	$this->session->set(UserRegister::class . '_id', $id);
     }
 }
@@ -436,6 +433,11 @@ class ResponseFactory
 	// отдаем 501 статус без вывода ошибки
     	return new Response('', 501);
     }
+	
+    public function createCustom(array $data, int $status): ResponseInterface
+    {
+        return new Response($data, $status);
+    }
 
     public function createFromException(\Exception $e): ResponseInterface
     {
@@ -462,8 +464,8 @@ class RegistrationController
 
     public function registerAction(RequestInterface $request): ResponseInterface
     {
-	if (is_null($request->post('step')) {
-	    // ...
+	if (!$request->has('step')) {
+	    return $this->responseFactory->createCustom(['Отсутсвует параметр `step` в теле запроса.'], 401);
 	}
 	
 	try {
