@@ -21,5 +21,5 @@ echo !$s->match(Monday::class);
 
 switch (true) {
     case $s instanceof Monday:
-	      break;
+        break;
 }
