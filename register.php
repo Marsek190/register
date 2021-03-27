@@ -45,7 +45,8 @@ final class RegistrationStepFirst implements RegistrationStep
 {
     public function __construct(
 	private \Symfony\Component\Validator\Validator\ValidatorInterface $validator,
-	private GuardRepositoryInterface $guardRepo
+	private GuardRepositoryInterface $guardRepo,
+	private SessionInterface $session
     ) { }
 
     /**
@@ -69,6 +70,9 @@ final class RegistrationStepFirst implements RegistrationStep
 	if (!$this->guardByContactInformation($phone, $email)) {
 	    throw new UserAlreadyExistsError();
 	}
+	    
+	$id = $this->userRegisterStepOneRepo->save($phone, $email);
+	$this->session->set(UserRegisterStepFirstDto::class, $id);
     }
 
     // ...
@@ -114,12 +118,30 @@ final class RegistrationStepThird implements RegistrationStep
 	}
 	
 	// ...
-	    
-	// конвертируем дто в доменную модель
 	$id = Id::next();
 	$userRegister = $this->userRegisterFactory->create($id, $userRegisterDto);
 	$this->userRegisterRepo->save($userRegister);
+	// удаление записей из таблиц типа `user_register_step_`
+	    
 	$this->session->set(UserRegister::class . '_id', $id);
+    }
+}
+
+class UserRegisterStepOneRepository
+{
+    // ...
+	
+    public function save(Phone $phone, Email $email): Id
+    {
+	// сохраняем в таблицу `user_register_step_one` телефон и почту, чтобы предотвратить коллизии,
+        // которые могут возникнуть, если кол-во шагов прирегистрации возрастет
+    	// ...
+    }
+    
+    public function remove(Id $id): void
+    {
+	// в случае успеха данные из таблицы `user_register_step_one` удаляются
+	// ...
     }
 }
 
@@ -372,14 +394,6 @@ class RequestDtoFactory
 	    2 => UserRegisterStepSecondDto::class,
 	    3 => UserRegisterStepThirdDto::class,
 	];
-    }
-}
-
-class UserRegisterConverter
-{
-    public function convertToEntity(UserRegister $model): UserRegisterEntity
-    {
-	// ...
     }
 }
 
