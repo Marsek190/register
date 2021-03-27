@@ -147,9 +147,17 @@ class UserRegisterStepOneRepository
 
 class UserRegisterStepperTransactional
 {
-    public function remove(): void
+    public function removeAll(): void
     {
+	$txId = $this->connection->startTransaction();
 	    
+	try {
+	     $this->userRegisterStepOneRepo->remove($this->session->get(UserRegisterStepFirstDto::class));
+	     // ...
+	     $this->connection->commit($txId);
+	} catch () {
+	    $this->connection->rollback($txId);
+	}
     }
 }
 
