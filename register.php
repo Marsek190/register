@@ -168,7 +168,7 @@ class UserRegisterStepperTransactional
 	} catch (TxException $e) {
 	    $this->txManager->rollback();
 	    
-	    throw new DataAccessException();
+	    throw new DataAccessException($e);
 	}
     }
 }
