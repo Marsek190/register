@@ -152,9 +152,10 @@ class UserRegisterStepperTransactional
 	$txId = $this->connection->startTransaction();
 	    
 	try {
-	     $this->userRegisterStepOneRepo->remove($this->session->get(UserRegisterStepFirstDto::class));
-	     // ...
-	     $this->connection->commit($txId);
+	    $this->userRegisterStepOneRepo->remove($this->session->get(UserRegisterStepFirstDto::class));
+	    $this->userRegisterStepSecondRepo->remove($this->session->get(UserRegisterStepSecondDto::class));
+	    // ...
+	    $this->connection->commit($txId);
 	} catch () {
 	    $this->connection->rollback($txId);
 	}
