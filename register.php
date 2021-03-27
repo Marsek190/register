@@ -156,7 +156,7 @@ class UserRegisterStepperTransactional
 	    $this->userRegisterStepSecondRepo->remove($this->session->get(UserRegisterStepSecondDto::class));
 	    // ...
 	    $this->connection->commit($txId);
-	} catch () {
+	} catch (TxException $e) {
 	    $this->connection->rollback($txId);
 	}
     }
