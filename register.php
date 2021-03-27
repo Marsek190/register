@@ -134,7 +134,7 @@ class UserRegisterStepOneRepository
     public function save(Phone $phone, Email $email): Id
     {
 	// сохраняем в таблицу `user_register_step_one` телефон и почту, чтобы предотвратить коллизии,
-        // которые могут возникнуть, если кол-во шагов прирегистрации возрастет
+        // которые могут возникнуть, если кол-во шагов при регистрации возрастет
     	// ...
     }
     
@@ -142,6 +142,14 @@ class UserRegisterStepOneRepository
     {
 	// в случае успеха данные из таблицы `user_register_step_one` удаляются
 	// ...
+    }
+}
+
+class UserRegisterStepperTransactional
+{
+    public function remove(): void
+    {
+	    
     }
 }
 
