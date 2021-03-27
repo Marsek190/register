@@ -12,6 +12,8 @@ user_register:
 
 interface UserRegisterDto { }
 
+interface UserRegisterStepId { }
+
 class UserRegisterStepFirstDto implements UserRegisterDto
 {
     public $name;
@@ -70,9 +72,10 @@ final class RegistrationStepFirst implements RegistrationStep
 	if (!$this->guardByContactInformation($phone, $email)) {
 	    throw new UserAlreadyExistsError();
 	}
-	    
-	$id = $this->userRegisterStepOneRepo->save($phone, $email);
-	$this->session->set(UserRegisterStepFirstDto::class, $id);
+	
+	$id = Id::next();
+	$this->userRegisterStepFirstRepo->save($id, $phone, $email);
+	$this->session->set(UserRegisterStepId::class, $id);
     }
 
     // ...
@@ -127,37 +130,45 @@ final class RegistrationStepThird implements RegistrationStep
     }
 }
 
-class UserRegisterStepOneRepository
+class UserRegisterStepFirstRepository
 {
     // ...
+    public const TABLE_NAME = 'user_register_step_one';
+
 	
-    public function save(Phone $phone, Email $email): Id
+    public function save(Id $id, Phone $phone, Email $email): void
     {
 	// сохраняем в таблицу `user_register_step_one` телефон и почту, чтобы предотвратить коллизии,
         // которые могут возникнуть, если кол-во шагов при регистрации возрастет
     	// ...
     }
-    
-    public function remove(Id $id): void
-    {
-	// в случае успеха данные из таблицы `user_register_step_one` удаляются
-	// ...
-    }
 }
 
 class UserRegisterStepperTransactional
 {
+    private array $tables = [
+    	UserRegisterStepFirstRepository::TABLE_NAME,
+	UserRegisterStepSecondRepository::TABLE_NAME,
+	// ...
+    ];
+
+    // ...
+	
     public function removeAll(): void
     {
-	$txId = $this->connection->startTransaction();
+	$this->txManager->startTransaction();
 	    
 	try {
-	    $this->userRegisterStepOneRepo->remove($this->session->get(UserRegisterStepFirstDto::class));
-	    $this->userRegisterStepSecondRepo->remove($this->session->get(UserRegisterStepSecondDto::class));
-	    // ...
-	    $this->connection->commit($txId);
+	    $query = '';
+	    foreach ($this->tables as $table) {
+	        $query .= "DELETE FROM {$table} WHERE {$table}.id = :id;" . PHP_EOL;
+	    }
+	    $this->txManager->execute($query, ['id' => $this->session->get(UserRegisterStepId::class)]);
+	    $this->txManager->commit();
 	} catch (TxException $e) {
-	    $this->connection->rollback($txId);
+	    $this->txManager->rollback();
+	    
+	    throw new DataAccessException();
 	}
     }
 }
